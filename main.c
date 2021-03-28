@@ -12,11 +12,11 @@
 #define MAX_ID 2            /* Max number of tasks */
 #define MAX_ATV 10              /* Max number of activities */
 
-/* Inicial activities */ /*
-#define TO_DO[] = {'T','O',' ','D','O','\0'}
-#define IN_PROGRESS[] = {'I','N',' ','P','R','O','G','R','E','S','S','\0'}
-#define DONE[] = {'D','O','N','E','\0'}
-*/
+/* Inicial activities */
+const char TO_DO[] = "TO DO";
+const char IN_PROGRESS[] = {'I','N',' ','P','R','O','G','R','E','S','S','\0'};
+const char DONE[] = {'D','O','N','E','\0'};
+
 /* Struct with the caracteristics of a task */
 typedef struct {
     int id; /* Task id, integer in range [1, 10000] */
@@ -37,6 +37,9 @@ char activities[MAX_ATV];
 Task tasks[MAX_ID];
 
 int addTask(void);
+int listTasks(void);
+int inputlistTasks(int l[]);
+
 
 /* Reads commands from stdin and executes the associated action */
 int main()
@@ -55,10 +58,10 @@ int main()
         case 't':
             /* Adds a new task */
             addTask();
-            /* printf("%d %d %s\n", tasks[newTask_id - 2].id, tasks[newTask_id - 2].previewTime, tasks[newTask_id - 2].description); */
             break;
 
         case 'l':
+            /* List the tasks inputed or all if none are given */
             listTasks();
             break;
         }
@@ -74,6 +77,12 @@ int addTask()
 
     int arg = 0, ti = 0, fora = 0, n = 0, i = 0, id = newTask_id;
     char c;
+
+    /* Check if its possible to create the new task */
+    if (id - 1 >= MAX_ID) {
+        printf("too many tasks\n");
+        return 1;
+    }
 
     /* Get input from stdin and divide it into separate arguments */ 
     c = getchar();
@@ -95,16 +104,9 @@ int addTask()
         }
         c = getchar();
     }
-
-
     newtask.description[i] = '\0';
 
-    /* Check if its possible to create the new task */
-    if (id - 1 >= MAX_ID) {
-        printf("too many tasks\n");
-        return 1;
-    }
-
+    /* Check if there are no tasks with the same description */
     for (i = 0; i < id - 1; i++) {
         if (!(strcmp(tasks[i].description, newtask.description))) {
             printf("duplicate description\n");
@@ -115,9 +117,14 @@ int addTask()
     /* Set remaining task values */ 
     newtask.id = newTask_id++;
     newtask.previewTime = n;
-    newtask.start = currentTime;
     newtask.time = 0;
     tasks[newTask_id - 2] = newtask;
+    n = strlen(TO_DO);
+    for (i = 0; i < n; i++) {
+        newtask.state[i] = TO_DO[i];
+        printf("string %s\n", newtask.state);
+    }
+    newtask.state[i] = '\0';
 
     /* Print output to stdout */
     printf("task %d\n", newtask.id);
@@ -125,7 +132,78 @@ int addTask()
 }
 
 
+int listTasks()
+{
+    /* Define local variables */
+    int i, j, l[MAX_ID], num_id, equal, n;
+    num_id = inputlistTasks(l);
 
+    /* Write requested tasks */
+    for(i = 1; i <= num_id; i++) {
+        equal = 0;
+        for(j = 0; (j < newTask_id - 1) && !equal; j++) {
+            if (l[i] == tasks[j].id) {
+                printf("%d %s #%d %s\n", tasks[j].id, tasks[j].state, tasks[j].time, tasks[j].description);
+                equal = 1;
+            }
+        }
+        if (!equal) {
+            printf("%d: no such task", l[i]);
+            return 1;
+        }
+    } 
+    if (num_id == 0) {
+        printf("here\n");
+        for(j = 0; j < newTask_id - 1; j++) {
+            n = strlen(TO_DO);
+            for (i = 0; i < n; i++) {
+                tasks[j].state[i] = TO_DO[i];
+            }
+            tasks[j].state[i] = '\0';
+            printf("%d %s #%d %s\n", tasks[j].id, tasks[j].state, tasks[j].time, tasks[j].description);
+        }
+    }
+
+
+    return 0;
+}
+
+
+int inputlistTasks(int l[]) 
+{
+    /* Local variables */
+    int num_id = 0, fora = 0, id = 0, i = 0;
+    char c;
+
+    /* Read ids' from stdin */
+    c = getchar();
+    while (c != '\n') {
+        if ('0' <= c && c <= '9') {
+            if (fora) {
+                fora = 0;
+                num_id++;
+            }
+
+            id = id * 10 + (c - '0');
+            printf("%d %d\n", num_id, id);
+        }
+
+        if (!fora && c == ' ') {
+            l[i++] = id;
+            fora = 1;
+            id = 0;
+            printf("wrong\n");
+        }
+
+        c = getchar();
+    }
+
+    l[i] = id;
+
+    return num_id;
+
+
+}
 
 
 
