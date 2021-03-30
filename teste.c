@@ -7,8 +7,8 @@
 #include <string.h>
 
 /* Maximum numbers of values stored */
-#define MAX_DESC_USERS 50       /* In descriptions and maximum amount of users */
-#define MAX_USR_ATV 20          /* In user names and activity names */
+#define MAX_DESC_USERS 5       /* In descriptions and maximum amount of users */
+#define MAX_USR_ATV 21          /* In user names and activity names */
 #define MAX_ID 10000            /* Max number of tasks */
 #define MAX_ATV 10              /* Max number of activities */
 
@@ -53,9 +53,12 @@ int taskInActivity(void);
 void orderByDescription(int l[],char s, int size);
 int addUserOrActivity(char c);
 void writeAll(char c);
+/*
 int errorChecking(char u[], char c);
 int errorUser(char u[]);
 int errorActivity(char u[]);
+*/
+int errorUserActivity(char u[], char c);
 
 
 
@@ -488,33 +491,16 @@ int addUserOrActivity(char c)
     char u[MAX_USR_ATV];
 
     /* Get input */
-    if (c == 'u') {
-        inputString(u, 'u');
-    }
-    else if (c == 'a') {
-        inputString(u, 's');
-    }
+    inputString(u, c);
 
     /* Write all users if none are given */
     if (strlen(u) == 0) {
         writeAll(c);
-        /*
-        if (c == 'u') {
-            for (i = 0; i < currentUsers; i++) {
-                printf("%s\n", usrs[i]);
-            }
-        }
-        else if (c == 'a') {
-            for (i = 0; i < current_activities; i++) {
-                printf("%s\n", activities[i]);
-            }
-        }
-        */
         return 0;
     }
 
     /* Error checking */
-    if(errorChecking(u, c)) {
+    if(errorUserActivity(u, c)) {
         return 1;
     }
     
@@ -523,10 +509,11 @@ int addUserOrActivity(char c)
         strcopy(u, usrs[currentUsers]);
         currentUsers++;
     }
-    else if (c == 'a') {
+    else {
         strcopy(u, activities[current_activities]);
         current_activities++;
     }
+    printf("users:%d\n", currentUsers);
     return 0;
 }
 
@@ -539,13 +526,46 @@ void writeAll(char c)
              printf("%s\n", usrs[i]);
         }
     }
-    else if (c == 'a') {
+    else {
         for (i = 0; i < current_activities; i++) {
             printf("%s\n", activities[i]);
         }
     }
 }
 
+int errorUserActivity(char u[], char c)
+{
+    int i, n, fn, b;
+    fn = (c == 'u' ? currentUsers : current_activities);
+    b = (c == 'u' ? 1 : 0);
+
+    printf("fn:%d\n", fn);
+
+    for (i = 0; i < fn; i++) {
+        if (!(strcmp((b ? usrs[i] : activities[i]), u))) {
+            (b ? printf("user already exists\n") : 
+                 printf("duplicate activity\n"));
+            return 1;
+        }
+    }
+
+    if (!b) {
+        n = strlen(u);
+        for (i = 0; i < n; i++) {
+            if ('a' <= u[i] && 'z' >= u[i]){
+                printf("invalid description\n");
+             return 1;
+            }
+        }
+    }
+
+    if ((fn + 1) > (b ? MAX_DESC_USERS : MAX_ATV)) {
+        (b ? printf("too many users\n") : printf("too many activities\n"));
+        return 1;
+    }
+    return 0;
+}
+/*
 int errorChecking(char u[], char c)
 {
     int i, n;
@@ -580,8 +600,32 @@ int errorUser(char u[])
 
 int errorActivity(char u[])
 {
-    int i, n;
+    int i, n, fn, b; */
+/*    fn = (c == 'u' ? currentUsers : current_activities);
+    b = (c == 'u' ? 1 : 0);
 
+    for (i = 0; i < fn; i++) {
+        if (!(strcmp((b ? usrs[i] : activities[i]), u))) {
+            (b ? printf("user already exists\n") : printf("duplicate activity\n"));
+            return 1;
+        }
+    }
+
+    if (!b) {
+        n = strlen(u);
+        for (i = 0; i < n; i++) {
+            if ('a' <= u[i] && 'z' >= u[i]){
+                printf("invalid description\n");
+             return 1;
+            }
+        }
+    }
+
+    if (fn + 1 > MAX_ATV) {
+        (b ? printf("user already exists\n") : printf("duplicate activity\n"));
+        return 1;
+    } */
+/*    
     for (i = 0; i < current_activities; i++) {
         if (!(strcmp(activities[i], u))) {
             printf("duplicate activity\n");
@@ -601,5 +645,8 @@ int errorActivity(char u[])
         printf("too many activities\n");
         return 1;
     }
+    
     return 0;
 }
+
+*/
