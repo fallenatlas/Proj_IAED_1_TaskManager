@@ -51,6 +51,11 @@ int teste(void);
 int inputIds(int *n);
 int taskInActivity(void);
 void orderByDescription(int l[],char s, int size);
+int addUserOrActivity(char c);
+void writeAll(char c);
+int errorChecking(char u[], char c);
+int errorUser(char u[]);
+int errorActivity(char u[]);
 
 
 
@@ -63,8 +68,6 @@ int main()
     strcopy(TO_DO, activities[0]);
     strcopy(IN_PROGRESS, activities[1]);
     strcopy(DONE, activities[2]);
-
-    printf("%s %s %s", activities[0], activities[1], activities[2]);
 
     /* Reads caracters from stdin until it finds the terminal case or a command to execute */
     while (1) {
@@ -91,33 +94,36 @@ int main()
             break; 
         
         case 'u':
-            /*Add user or list all users*/ 
-            addUser();
+            /*Add user or list all users
+            addUser();*/
+            addUserOrActivity('u');
             break;
 
         case 'm':
             /* Move one task from one activity to another */
             moveActivity();
             break;
-
+/*
         case 'o':
             teste();
             break;
-
+*/
         case 'd':
             taskInActivity();
+            break;
+
+        case 'a':
+            addUserOrActivity('a');
             break;
         }
     }
 }
 
-
 /* Creates a new task */
 int addTask()
 {
-    /* Local variables */
+    /* Define local variables */
     Task newtask;
-
     int n = 0, i = 0;
     int id = newTask_id;
 
@@ -157,12 +163,14 @@ int addTask()
     return 0;
 }
 
-
+/* Lists the requested tasks in the same order or
+   all by alphabetical order if none are requested */ 
 int listTasks()
 {
     /* Define local variables */
     int i = 0, j, l[MAX_ID] = {0}, n, num_ids, equal, id = newTask_id;
-/*    char desc[MAX_DESC_USERS];hold*/
+
+    /* Get the input from stdin */
     n = 1;
     num_ids = 0;
     while(n && (n != -1)) {
@@ -171,20 +179,25 @@ int listTasks()
         i = 0;
     }
 
+    /* If no tasks are inserted set set num_ids to a negative value */
     if (n == -1) {
         num_ids = -1;
     }
 
-    for(i = 0; i < num_ids; i++) {
-        printf("before:%d \n", l[i]);
-    }
-    /*
-    num_id = inputlistTasks(l);
-*/
     /* Write requested tasks */
-    for(i = 0; i < num_ids; i++) {
+    for(i = 0; i < num_ids; i++) {  /* For each argument */
+        /* Position in array tasks of the requested task */
+        j = l[i] - 1;              
+        if (j < id - 1) {
+            printf("%d %s #%d %s\n", tasks[j].id, tasks[j].state, tasks[j].time, tasks[j].description);
+        }
+        else {
+            printf("%d: no such task\n", l[i]);
+            return 1;
+        }
+        /*
         equal = 0;
-        for(j = 0; (j < id - 1) && !equal; j++) {
+        for(j = 0; (j < id - 1) && !equal; j++) { 
             if (l[i] == tasks[j].id) {
                 printf("%d %s #%d %s\n", tasks[j].id, tasks[j].state, tasks[j].time, tasks[j].description);
                 equal = 1;
@@ -193,72 +206,26 @@ int listTasks()
         if (!equal) {
             printf("%d: no such task\n", l[i]);
             return 1;
-        }
+        }*/
     } 
 
+    /* Write all tasks in alphabetical order when none are requested */
     if (num_ids == -1) {
+        /* Make an array with all of the current positions with tasks in array tasks*/
         for (i = 0; i < id - 1; i++) {
             l[i] = tasks[i].id - 1;
         }
 
-    orderByDescription(l, 'n', id - 1);
-/*
-        for (i = 1; i < id - 1; i++) {
-            j = i-1;
-            hold = l[i];
-            strcopy(tasks[l[i]].description, desc);
-            while((strcmp(tasks[l[j]].description, desc) > 0) && j >= 0) {
-                l[j+1] = l[j];
-                j--;
-            }
-            l[j + 1] = hold;
-        }
-*/
+        orderByDescription(l, 'n', id - 1);
+
         for(i = 0; i < id - 1; i++) {
             printf("%d %s #%d %s\n", tasks[l[i]].id, tasks[l[i]].state, tasks[l[i]].time, tasks[l[i]].description);
         }
     }
-
-
-    /*
-    for(j = 0; j < newTask_id - 1; j++) {
-            printf("%d %s #%d %s\n", tasks[j].id, tasks[j].state, tasks[j].time, tasks[j].description);
-        }
-    */
     return 0;
 }
 
-
-int inputlistTasks(int l[]) 
-{
-    /* Local variables */
-    int num_id = 0, fora = 0, id = 0, i = 0;
-    char c;
-
-    /* Read ids' from stdin */
-    c = getchar();
-    while (c != '\n') {
-        if ('0' <= c && c <= '9') {
-            if (fora) {
-                fora = 0;
-                num_id++;
-            }
-            id = id * 10 + (c - '0');
-        }
-
-        if (!fora && c == ' ') {
-            l[i++] = id;
-            fora = 1;
-            id = 0;
-        }
-
-        c = getchar();
-    }
-    l[i] = id;
-
-    return num_id;
-}
-
+/* Increaments the time of the system */
 int increaseTime()
 {
     int t = 0, i, fora = 0;
@@ -305,8 +272,10 @@ int addUser()
     int i;
     char u[MAX_USR_ATV];
 
+    /* Get input */
     inputString(u, 'u');
 
+    /* Write all users if none are given */
     if (strlen(u) == 0) {
         for (i = 0; i < currentUsers; i++) {
             printf("%s\n", usrs[i]);
@@ -314,6 +283,7 @@ int addUser()
         return 0;
     }
 
+    /* Error checking */
     for (i = 0; i < currentUsers; i++) {
         if (!(strcmp(usrs[i], u))) {
             printf("user already exists\n");
@@ -445,21 +415,6 @@ int inputIds(int *n)
     return (c == ' ' ? 1 : 0);
 }
 
-
-int convertToInt(char s[])
-{
-    int i, n;
-
-    n = 0;
-    i = 0;
-    while(s[i] != '\0') {
-        n = n * 10 + (s[i] - '0');
-    }
-
-    return n;
-}
-
-
 void strcopy(char s[],char c[])
 {
     int i;
@@ -476,11 +431,9 @@ void strcopy(char s[],char c[])
 int taskInActivity()
 {
     int num = 0, i, n, hold, j, t, all[MAX_ID], id = newTask_id;
-    char a[MAX_USR_ATV]; /*desc[MAX_DESC_USERS]*/
+    char a[MAX_USR_ATV];
 
     inputString(a, 's');
-
-    printf("string:%s\n", a);
 
     n = id - 1;
     for (i = 0; i < n; i++) {
@@ -488,10 +441,6 @@ int taskInActivity()
             all[num++] = i; 
         }
     }
-
-    for(i = 0; i < num; i++) {
-            printf("all:%d %d %s %s\n", i, all[i], tasks[all[i]].state, tasks[all[i]].description);
-        }
 
     for (i = 1; i < num; i++) {
         hold = all[i];
@@ -505,29 +454,11 @@ int taskInActivity()
         all[j + 1] = hold;
     }
 
-    for (i = 0; i < num; i++) {
-        printf("%d %d\n", all[i], num);
-    }
-
     orderByDescription(all, 's', num);
 
-    printf("here\n");
-/*
-    for (i = 1; i < num; i++) {
-        j = i-1;
-        hold = all[i];
-        strcopy(tasks[all[i]].description, desc);
-        while((strcmp(tasks[all[j]].description, desc) > 0) && (tasks[all[j]].start == tasks[all[i]].start) && j >= 0) {
-            all[j+1] = all[j];
-            j--;
-        }
-        all[j + 1] = hold;
-    }
-*/
     for (i = 0; i < num; i++) {
         printf("%d %d %s\n", tasks[all[i]].id, tasks[all[i]].start, tasks[all[i]].description);
     }
-
     return 0;
 }
 
@@ -535,14 +466,12 @@ void orderByDescription(int l[], char s, int size)
 {
     int i = 0, j, hold;
     char desc[MAX_DESC_USERS];
-    printf("here1\n");
 
     for (i = 1; i < size; i++) {
             j = i-1;
             hold = l[i];
             strcopy(tasks[l[i]].description, desc);
             while((strcmp(tasks[l[j]].description, desc) > 0) && (s == 's' ? tasks[l[j]].start == tasks[l[i]].start : 1) && j >= 0) {
-                printf("%s / %s\n", tasks[l[j]].description, desc);
                 l[j+1] = l[j];
                 l[j] = hold;
                 j--;
@@ -553,77 +482,124 @@ void orderByDescription(int l[], char s, int size)
         }
 }
 
-/*
-&& (s == 's' ? tasks[l[j]].start == tasks[l[i]].start : 1)*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-int getInput(int input[][50], int command)
+int addUserOrActivity(char c)
 {
-    int args, fora, i;
-    char c;
+    int i;
+    char u[MAX_USR_ATV];
 
-    args = 0;
-    fora = 1;
-    i = 0;
-
-    c = getchar();
-    c = getchar();
-    while (c != '\n') {
-        if (c == ' ' && !fora && (args != 1 && command == 't')) {
-            fora = 1;
-            input[args][i] = '\0';
-            args++;
-            i = 0;
-        }
-
-        if (fora && c != ' ') {
-            fora = 0;
-        }
-
-        if (!fora) {
-            if (command == 'l' || command == 'n' || (command == 't' && args == 0) || (command == 'm' && args == 0)) {
-                input[args][0] = input[args][0] * 10 + (c - '0');
-                printf("args:%d c:%c input:%d\n", args, c, input[args][0]);
-            }
-            else if (command == 't' && args == 1 && i < MAX_DESC_USERS) {
-                input[args][i++] = c;
-            }
-            else if (i < MAX_USR_ATV) {
-                input[args][i++] = c;
-            }
-        }
-        c = getchar();
+    /* Get input */
+    if (c == 'u') {
+        inputString(u, 'u');
     }
-    input[args][i] = '\0';
+    else if (c == 'a') {
+        inputString(u, 's');
+    }
 
-    return args;
+    /* Write all users if none are given */
+    if (strlen(u) == 0) {
+        writeAll(c);
+        /*
+        if (c == 'u') {
+            for (i = 0; i < currentUsers; i++) {
+                printf("%s\n", usrs[i]);
+            }
+        }
+        else if (c == 'a') {
+            for (i = 0; i < current_activities; i++) {
+                printf("%s\n", activities[i]);
+            }
+        }
+        */
+        return 0;
+    }
+
+    /* Error checking */
+    if(errorChecking(u, c)) {
+        return 1;
+    }
+    
+    /* Add new user or activity to the global pool */
+    if (c == 'u') {
+        strcopy(u, usrs[currentUsers]);
+        currentUsers++;
+    }
+    else if (c == 'a') {
+        strcopy(u, activities[current_activities]);
+        current_activities++;
+    }
+    return 0;
 }
-*/
+
+void writeAll(char c)
+{
+    int i;
+
+    if (c == 'u') {
+        for (i = 0; i < currentUsers; i++) {
+             printf("%s\n", usrs[i]);
+        }
+    }
+    else if (c == 'a') {
+        for (i = 0; i < current_activities; i++) {
+            printf("%s\n", activities[i]);
+        }
+    }
+}
+
+int errorChecking(char u[], char c)
+{
+    int i, n;
+
+    if (c == 'u' && errorUser(u)) {
+        return 1;
+    }
+
+    if (c == 'a' && errorActivity(u)) {
+        return 1;
+    }
+
+    return 0;
+}
+
+int errorUser(char u[])
+{
+    int i;
+
+    for (i = 0; i < currentUsers; i++) {
+        if (!(strcmp(usrs[i], u))) {
+            printf("user already exists\n");
+            return 1;
+        }
+    }
+    if (currentUsers + 1 > MAX_DESC_USERS) {
+        printf("too many users\n");
+        return 1;
+    }
+    return 0;
+}
+
+int errorActivity(char u[])
+{
+    int i, n;
+
+    for (i = 0; i < current_activities; i++) {
+        if (!(strcmp(activities[i], u))) {
+            printf("duplicate activity\n");
+            return 1;
+        }
+    }
+
+    n = strlen(u);
+    for (i = 0; i < n; i++) {
+        if ('a' <= u[i] && 'z' >= u[i]){
+            printf("invalid description\n");
+            return 1;
+        }
+    }
+
+    if (current_activities + 1 > MAX_ATV) {
+        printf("too many activities\n");
+        return 1;
+    }
+    return 0;
+}
